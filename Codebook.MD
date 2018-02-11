@@ -41,12 +41,12 @@ In this step we aggregate the data leaving a single row for each variable for ea
 
 In the final data set we have the following variables:
 
--subjects: Variable to distinguish who made the experiment. It goes from 1 to 30
--activity: Variable to distinguish which activity the subject was experimenting. The activities are: 
+- subjects: Variable to distinguish who made the experiment. It goes from 1 to 30
+- activity: Variable to distinguish which activity the subject was experimenting. The activities are: 
 	- 'laying',
 	- 'sitting',
 	- 'standing',
 	- 'walking',
 	- 'walking_downstairs'
 	- 'walking_upstairs'
--measurements: the mean of 66 different measurements for each subject and activity
+- measurements: the mean of 66 different measurements for each subject and activity

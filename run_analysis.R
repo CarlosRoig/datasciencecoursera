@@ -42,4 +42,4 @@ if(!require(reshape2)){install.packages("reshape2")}
 
 meltdata <- melt(complete_data, id.vars = c("subjects", "activity"))
 tidydata <- dcast(meltdata, subjects + activity ~ variable, fun.aggregate = mean, na.rm = TRUE)
-write.table(tidydata, file = "./UCI HAR Dataset/UCI_HAR_tidydata.csv", row.names = FALSE)
+write.table(tidydata, file = "./UCI HAR Dataset/UCI_HAR_tidydata.txt", row.names = FALSE)

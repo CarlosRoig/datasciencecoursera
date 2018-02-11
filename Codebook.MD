@@ -42,7 +42,7 @@ In this step we aggregate the data leaving a single row for each variable for ea
 In the final data set we have the following variables:
 
 - subjects (numeric variable): Variable to distinguish who made the experiment. It goes from 1 to 30
-- activity (string variable): Variable to distinguish which activity the subject was experimenting. The activities are: 
+- activity (factor variable): Variable to distinguish which activity the subject was experimenting. The activities are: 
 	- 'laying',
 	- 'sitting',
 	- 'standing',

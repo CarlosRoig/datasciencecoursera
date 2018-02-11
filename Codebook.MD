@@ -41,15 +41,15 @@ In this step we aggregate the data leaving a single row for each variable for ea
 
 In the final data set we have the following variables:
 
-- subjects: Variable to distinguish who made the experiment. It goes from 1 to 30
-- activity: Variable to distinguish which activity the subject was experimenting. The activities are: 
+- subjects (numeric variable): Variable to distinguish who made the experiment. It goes from 1 to 30
+- activity (string variable): Variable to distinguish which activity the subject was experimenting. The activities are: 
 	- 'laying',
 	- 'sitting',
 	- 'standing',
 	- 'walking',
 	- 'walking_downstairs'
 	- 'walking_upstairs'
-- measurements: the mean of 66 different measurements for each subject and activity. The measurements are the following:
+- measurements (all numeric variables): the mean of 66 different measurements for each subject and activity. The measurements are the following:
 	- tBodyAcc-mean()-X          
 	- tBodyAcc-mean()-Y          
 	- tBodyAcc-mean()-Z          

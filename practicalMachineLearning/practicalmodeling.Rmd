@@ -1,0 +1,115 @@
+---
+title: "Training excercise prediction study"
+author: "Carrlos Roig"
+date: "25 March 2018"
+output: 
+  html_document: 
+    keep_md: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r libraries, message=F, warning=F}
+library(data.table)
+library(caret)
+library(ggplot2)
+library(plotly)
+library(factoextra)
+```
+
+## Executive summary
+
+Using devices such as Jawbone Up, Nike FuelBand, and Fitbit it is now possible to collect a large amount of data about personal activity relatively inexpensively. These type of devices are part of the quantified self movement - a group of enthusiasts who take measurements about themselves regularly to improve their health, to find patterns in their behavior, or because they are tech geeks. One thing that people regularly do is quantify how much of a particular activity they do, but they rarely quantify how well they do it.
+
+In this study, my goal will be to use data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants. They were asked to perform barbell lifts correctly and incorrectly in 5 different ways, and with the data obtained from the accelerometers, I'll develope a predicting model that predicts what specific training way the participant were exercising.
+
+The dataset can be downloaded from here:
+[Training Data](https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv)
+
+This dataset was created by:
+*Velloso, E.; Bulling, A.; Gellersen, H.; Ugulino, W.; Fuks, H. Qualitative Activity Recognition of Weight Lifting Exercises. Proceedings of 4th International Conference in Cooperation with SIGCHI (Augmented Human '13) . Stuttgart, Germany: ACM SIGCHI, 2013.*
+
+## Data Exploration and Transformation
+
+The first thing we will do is to load the data and do some exploration and cleaning.
+
+```{r dataload}
+dataset <- fread("./pml-training.csv")
+```
+
+We want our output variable as a factor, instead of a character variable.
+
+```{r datatrans}
+dataset$classe <- factor(dataset$classe)
+```
+
+We will remove variables that has no value for predicting, leaving only the data frfom the accelerometers.
+
+```{r dataclean}
+dataset$V1 <- NULL
+dataset$user_name <- NULL
+dataset$raw_timestamp_part_1 <- NULL
+dataset$raw_timestamp_part_2 <- NULL
+dataset$cvtd_timestamp <- NULL
+dataset$new_window <- NULL
+dataset$num_window <- NULL
+```
+
+The next step will be remove the Near Zero Variability variables. These variables doesn't add any predictive value to our model.
+
+```{r dataclean2}
+datasmall <- subset(dataset, select = -nearZeroVar(dataset))
+```
+
+Finally, we remove all the variables that contains at least a 25% of missing information because can provoque bad model prediction performance.
+
+```{r dataclean3}
+numNas <- sapply(datasmall, function(x) sum(is.na(x)))
+tooManyNAsCols <- names(numNas[numNas > (0.25 * length(datasmall$classe))])
+cleandata <- subset(datasmall, select = -which(names(datasmall) %in% tooManyNAsCols))
+str(cleandata)
+```
+
+## Data Modeling
+
+Now that we have a clean dataset we will use Principal Component Analysis(PCA) to take the variables that explains the most variability. But first we divide the data in training and validation.
+```{r datasplit}
+set.seed(1310)
+tr <- createDataPartition(cleandata$classe, p=0.8, list = F)
+training <- cleandata[tr, ]
+validation <- cleandata[-tr, ]
+```
+
+To do the PCA, it is recommendable to scale and center the data, so we will add these methods to our pre-processing call.
+
+```{r dataPCA}
+pca <- prcomp(training[,-"classe"], center = TRUE, scale. = TRUE)
+summary(pca)
+fviz_eig(pca)
+```
+
+We can see that the first 2 components already explain more than 30% of the variablitity, and we need only 10 por the 76% of explanation. Even with that, we need at the end 25 principal components to explain the 95% of variability, so we will use those to create our new training dataset.
+
+```{r dataPCA2}
+trainPCA <- predict(pca, training[, -"classe"])
+trainPCA <- data.frame(trainPCA[, 1:25], classe = training$classe)
+```
+
+Once we have our PCA results, we use the new dataset to train a Random Forest predictive model. To do that we will use a `trainControl` object to tell our method that we want eigth `cross validation` resampling repeats, to improve the final method.
+
+```{r modelfit, cache=TRUE}
+tc <- trainControl(method = "cv", number = 8, verboseIter=FALSE , preProcOptions="pca", allowParallel=TRUE)
+randFor <- train(classe ~ ., data = trainPCA, method = "rf", trControl= tc)
+```
+
+To finish, we will check the accuracy of our model using the validation partition and the confusion matrix method. To do that, first we have to transform the validation partition using the PCA calculated before.
+
+```{r modelvalid}
+valiPCA <- predict(pca, validation[, -"classe"])
+valiPCA <- data.frame(valiPCA, classe = validation$classe)
+confusionMatrix(valiPCA$classe, predict(randFor, valiPCA))
+```
+
+Our final model, as we can see, gives us a 98% accuracy when testing it against our validation partition; an accuracy that we can consider excellent, finishing with it our study.

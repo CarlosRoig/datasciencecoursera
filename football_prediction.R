@@ -25,6 +25,10 @@ poisson_model <-
                home=0)) %>%
   glm(goals ~ home + team +opponent, family=poisson(link=log),data=.)
 
+percent <- function(x, digits = 2) {
+  round(x * 100, digits = digits)
+}
+
 simulate_match <- function(foot_model, homeTeam, awayTeam, max_goals=10){
   home_goals_avg <- predict(foot_model,
                             data.frame(home=1, team=homeTeam,
@@ -32,7 +36,11 @@ simulate_match <- function(foot_model, homeTeam, awayTeam, max_goals=10){
   away_goals_avg <- predict(foot_model,
                             data.frame(home=0, team=awayTeam,
                                        opponent=homeTeam), type="response")
-  dpois(0:max_goals, home_goals_avg) %o% dpois(0:max_goals, away_goals_avg)
+  matrix(percent(dpois(0:max_goals, home_goals_avg) %o% dpois(0:max_goals, away_goals_avg)), nrow = 5, ncol = 5)
 }
 
-simulate_match(poisson_model, "Valencia CF", "FC Barcelona", max_goals=4)
+simulation <- simulate_match(poisson_model, "Valencia CF", "FC Barcelona", max_goals=4)
+
+sum(simulation[lower.tri(simulation)])
+sum(diag(chel_sun))
+sum(chel_sun[upper.tri(chel_sun)])

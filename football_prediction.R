@@ -35,4 +35,4 @@ simulate_match <- function(foot_model, homeTeam, awayTeam, max_goals=10){
   dpois(0:max_goals, home_goals_avg) %o% dpois(0:max_goals, away_goals_avg)
 }
 
-simulate_match(poisson_model, "Chelsea", "Sunderland", max_goals=4)
+simulate_match(poisson_model, "Valencia CF", "FC Barcelona", max_goals=4)

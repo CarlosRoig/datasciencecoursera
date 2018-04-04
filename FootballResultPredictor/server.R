@@ -11,6 +11,7 @@ library(shiny)
 library(footballR)
 library(dplyr)
 library(ggplot2)
+library(reshape)
 
 epl_data <- c("")
 
@@ -26,9 +27,10 @@ shinyServer(function(input, output, session) {
     liga <- input$selectLigas
     season <- 2017
     epl_id <- fdo_listComps(token=token, season = season,response = "minified") %>% filter(league==liga) %>% .$id
-    epl_data <<- fdo_listCompFixtures(token=token, id = epl_id, response = "minified")$fixtures %>%
-      jsonlite::flatten() %>% filter(status=="FINISHED") %>%
-      rename(home=homeTeamName, away=awayTeamName, homeGoals=result.goalsHomeTeam,
+    epl_data <<- fdo_listCompFixtures(token=token, id = epl_id, response = "minified")$fixtures
+    epl_data <<- epl_data %>% jsonlite::flatten() %>% filter(status=="FINISHED")
+    epl_data <<- epl_data %>%
+      dplyr::rename(home=homeTeamName, away=awayTeamName, homeGoals=result.goalsHomeTeam,
              awayGoals=result.goalsAwayTeam) %>%
       select(home,away,homeGoals,awayGoals)
     temp <- epl_data[order(unique(epl_data$home)), ]$home
@@ -73,6 +75,17 @@ shinyServer(function(input, output, session) {
 
     simulation <- simulate_match(poisson_model, input$home, input$away, max_goals=4)
     output$porcentaje <- renderText(as.character(simulation$chanceWin))
+    output$plot1 <- renderPlot({
+      g <- ggplot(melt(simulation), aes(X1, X2)) + geom_tile(aes(fill = value), color = "white") + scale_fill_gradient(low = "white", high = "red")
+      g <- g + xlab("Home Team goals") + ylab("Away Team goals")
+      g <- g + theme(legend.title = element_text(size = 10),
+                     legend.text = element_text(size = 12),
+                     plot.title = element_text(size=16),
+                     axis.title=element_text(size=14,face="bold"),
+                     axis.text.x = element_text(hjust = 1))
+      g <- g + labs(fill = "Probability")
+      g
+    })
   })
 
 })

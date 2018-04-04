@@ -65,15 +65,14 @@ shinyServer(function(input, output, session) {
       away_goals_avg <- predict(foot_model,
                                 data.frame(home=0, team=awayTeam,
                                            opponent=homeTeam), type="response")
-      matrix(percent(dpois(0:max_goals, home_goals_avg) %o% dpois(0:max_goals, away_goals_avg)), nrow = 5, ncol = 5)
+      output <- list(matrix = matrix(percent(dpois(0:max_goals, home_goals_avg) %o% dpois(0:max_goals, away_goals_avg)), nrow = 5, ncol = 5))
+      output <- list(output$matrix, chanceWin = sum(output$matrix[lower.tri(output$matrix)]),
+                     chanceTie =sum(diag(output$matrix)), chanceLose = sum(output$matrix[upper.tri(output$matrix)]))
+
     }
 
     simulation <- simulate_match(poisson_model, input$home, input$away, max_goals=4)
-
-    sum(simulation[lower.tri(simulation)])
-    sum(diag(simulation))
-    sum(simulation[upper.tri(simulation)])
-    output$porcentaje <- renderText(as.character(sum(simulation[upper.tri(simulation)])))
+    output$porcentaje <- renderText(as.character(simulation$chanceWin))
   })
 
 })

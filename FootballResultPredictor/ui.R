@@ -27,7 +27,11 @@ shinyUI(fluidPage(
     ),
     # Show a plot of the generated distribution
     mainPanel(
-      plotOutput("plot1")
+      plotOutput("plot1"),
+      br(),
+      textOutput("probsWin"),
+      textOutput("probsTie"),
+      textOutput("probsLose")
     )
   )
 ))
